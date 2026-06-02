@@ -1,0 +1,40 @@
+import requests
+import time
+from telegram import Bot
+
+TOKEN = "ВСТАВЬ_СЮДА_ТОКЕН"
+CHAT_ID = "1227551"
+
+bot = Bot(token=TOKEN)
+
+keywords = [
+    "Froddo barefoot 31",
+    "Froddo barefoot 26",
+]
+
+sites = [
+    "https://www.vinted.sk",
+]
+
+sent_links = set()
+
+def search_vinted(keyword):
+    url = f"https://www.vinted.sk/catalog?search_text={keyword.replace(' ', '+')}"
+    return [url]
+
+while True:
+    try:
+        for keyword in keywords:
+            results = search_vinted(keyword)
+
+            for link in results:
+                if link not in sent_links:
+                    text = f"🔎 Našla som nové Froddo:\n{keyword}\n{link}"
+                    bot.send_message(chat_id=CHAT_ID, text=text)
+                    sent_links.add(link)
+
+        time.sleep(3600)
+
+    except Exception as e:
+        print(e)
+        time.sleep(60)
