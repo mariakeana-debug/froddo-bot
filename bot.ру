@@ -1,40 +1,37 @@
-import requests
-import time
-from telegram import Bot
+import os
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
-TOKEN = "ВСТАВЬ_СЮДА_ТОКЕН"
-CHAT_ID = "1227551"
+TOKEN = os.getenv("BOT_TOKEN")
 
-bot = Bot(token=TOKEN)
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "Привет! Напиши:\n\nfroddo 31\nили\nfroddo 26"
+    )
 
-keywords = [
-    "Froddo barefoot 31",
-    "Froddo barefoot 26",
-]
+async def search(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.lower()
 
-sites = [
-    "https://www.vinted.sk",
-]
+    if "31" in text:
+        await update.message.reply_text(
+            "Ищу Froddo barefoot 31 до 15€:\n"
+            "https://www.vinted.sk/catalog?search_text=froddo+31+barefoot"
+        )
 
-sent_links = set()
+    elif "26" in text:
+        await update.message.reply_text(
+            "Ищу Froddo barefoot 26 до 15€:\n"
+            "https://www.vinted.sk/catalog?search_text=froddo+26+barefoot"
+        )
 
-def search_vinted(keyword):
-    url = f"https://www.vinted.sk/catalog?search_text={keyword.replace(' ', '+')}"
-    return [url]
+    else:
+        await update.message.reply_text("Напиши размер: 31 или 26")
 
-while True:
-    try:
-        for keyword in keywords:
-            results = search_vinted(keyword)
+app = ApplicationBuilder().token(TOKEN).build()
 
-            for link in results:
-                if link not in sent_links:
-                    text = f"🔎 Našla som nové Froddo:\n{keyword}\n{link}"
-                    bot.send_message(chat_id=CHAT_ID, text=text)
-                    sent_links.add(link)
+app.add_handler(CommandHandler("start", start))
 
-        time.sleep(3600)
+from telegram.ext import MessageHandler, filters
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, search))
 
-    except Exception as e:
-        print(e)
-        time.sleep(60)
+app.run_polling()
